@@ -1,0 +1,24 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: paymentservice
+  data:
+    mongodb:
+      uri: mongodb://mongo-pagos:27017/pagos_db
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: paymentservice
+
+logging:
+  level:
+    '[com.microservices.paymentservice]': INFO
+    '[org.springframework.data.mongodb]': DEBUG

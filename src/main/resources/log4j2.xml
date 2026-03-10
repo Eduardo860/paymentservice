@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="com.amazonaws.cloudwatch.log4j2">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{ISO8601} [%t] %-5p %c{1} - %m%n" />
+        </Console>
+        <CloudWatchAppender name="CloudWatchAppender"
+                logGroupName="pagos-log-group"
+                logStreamName="pagos-service-stream"
+                awsAccessKeyId="${AWS_ACCESS_KEY_ID}"
+                awsSecretKey="${AWS_SECRET_ACCESS_KEY}"
+                awsRegion="${AWS_REGION:us-east-1}"
+                cloudWatchEndpoint="${CLOUDWATCH_ENDPOINT}">
+            <PatternLayout pattern="%d{ISO8601} [%t] %-5p %c{1} - %m%n" />
+        </CloudWatchAppender>
+    </Appenders>
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="CloudWatchAppender" />
+        </Root>
+        <Logger name="com.microservices.paymentservice" level="DEBUG" />
+    </Loggers>
+</Configuration>
