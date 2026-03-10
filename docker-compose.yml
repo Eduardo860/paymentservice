@@ -1,0 +1,280 @@
+version: "3.9"
+
+# ============================================================================
+# DOCKER COMPOSE DE REFERENCIA - ORQUESTACIÓN GENERAL
+# ============================================================================
+#
+# Este archivo es una REFERENCIA para entender la arquitectura completa.
+# Para levantar el sistema, ejecuta los 3 docker-compose en este orden:
+#
+# PASO 1: Levantar LocalStack (AWS simulado)
+#   docker-compose -f docker/localstack/docker-compose.yml up
+#
+# PASO 2: Levantar MongoDB (3 instancias)
+#   docker-compose -f docker/mongodb/docker-compose.yml up
+#
+# PASO 3: Levantar Microservicios (Spring Boot services)
+#   docker-compose -f docker/microservices/docker-compose.yml up --build
+#
+# ALTERNATIVA: Si quieres todo en un solo paso desde la raíz
+#   Ver ESTRUCTURA.md para instrucciones detalladas
+#
+# ============================================================================
+
+# Esta es una copia integrada para referencia visual
+# En producción, usa los 3 archivos separados en /docker
+services:
+  # ========================================
+  # LOCALSTACK - AWS Local Simulation
+  # ========================================
+  localstack:
+    container_name: infra-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - SERVICES=cloudwatch,logs,sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - LOCALSTACK_UI=1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./docker/localstack/init-scripts.sh:/docker-entrypoint-initaws.d/init-scripts.sh
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "awslocal", "cloudwatch", "describe-alarms"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # MONGODB - Databases
+  # ========================================
+  mongo-productos:
+    image: mongo:7.0
+    container_name: mongo-productos
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: productos_db
+    volumes:
+      - mongo-productos-data:/data/db
+      - ./docker/mongodb/init-productos.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-ordenes:
+    image: mongo:7.0
+    container_name: mongo-ordenes
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: ordenes_db
+    volumes:
+      - mongo-ordenes-data:/data/db
+      - ./docker/mongodb/init-ordenes.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-pagos:
+    image: mongo:7.0
+    container_name: mongo-pagos
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: pagos_db
+    volumes:
+      - mongo-pagos-data:/data/db
+      - ./docker/mongodb/init-pagos.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # EUREKA SERVER - Service Discovery
+  # ========================================
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: infra-eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - CLOUDWATCH_ENDPOINT=http://localstack:4566
+    depends_on:
+      localstack:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/eureka/apps"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # API GATEWAY
+  # ========================================
+  apigateway:
+    build:
+      context: ./apigateway
+      dockerfile: Dockerfile
+    container_name: infra-apigateway
+    ports:
+      - "8080:8080"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - CLOUDWATCH_ENDPOINT=http://localstack:4566
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      productservice:
+        condition: service_started
+      orderservice:
+        condition: service_started
+      paymentservice:
+        condition: service_started
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # PRODUCT SERVICE - Microservicio de Productos
+  # ========================================
+  productservice:
+    build:
+      context: ./productservice
+      dockerfile: Dockerfile
+    container_name: infra-productservice
+    ports:
+      - "8081:8081"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - CLOUDWATCH_ENDPOINT=http://localstack:4566
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-productos:27017/productos_db
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongo-productos:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # ORDER SERVICE - Microservicio de Órdenes
+  # ========================================
+  orderservice:
+    build:
+      context: ./orderservice
+      dockerfile: Dockerfile
+    container_name: infra-orderservice
+    ports:
+      - "8082:8082"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - CLOUDWATCH_ENDPOINT=http://localstack:4566
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-ordenes:27017/ordenes_db
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongo-ordenes:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # PAYMENT SERVICE - Microservicio de Pagos
+  # ========================================
+  paymentservice:
+    build:
+      context: ./paymentservice
+      dockerfile: Dockerfile
+    container_name: infra-paymentservice
+    ports:
+      - "8083:8083"
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - CLOUDWATCH_ENDPOINT=http://localstack:4566
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo-pagos:27017/pagos_db
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      mongo-pagos:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongo-productos-data:
+    driver: local
+  mongo-ordenes-data:
+    driver: local
+  mongo-pagos-data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
+

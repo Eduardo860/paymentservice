@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  localstack:
+    container_name: infra-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      - DEBUG=${DEBUG:-0}
+      - SERVICES=cloudwatch,logs,sqs
+      - AWS_DEFAULT_REGION=us-east-1
+      - LOCALSTACK_UI=1
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - ./init-scripts.sh:/docker-entrypoint-initaws.d/init-scripts.sh
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "awslocal", "cloudwatch", "describe-alarms"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  microservices-network:
+    driver: bridge

@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+  mongo-productos:
+    image: mongo:7.0
+    container_name: mongo-productos
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: productos_db
+    volumes:
+      - mongo-productos-data:/data/db
+      - ./init-productos.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-ordenes:
+    image: mongo:7.0
+    container_name: mongo-ordenes
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: ordenes_db
+    volumes:
+      - mongo-ordenes-data:/data/db
+      - ./init-ordenes.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-pagos:
+    image: mongo:7.0
+    container_name: mongo-pagos
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: pagos_db
+    volumes:
+      - mongo-pagos-data:/data/db
+      - ./init-pagos.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo-productos-data:
+    driver: local
+  mongo-ordenes-data:
+    driver: local
+  mongo-pagos-data:
+    driver: local
+
+networks:
+  microservices-network:
+    driver: bridge
