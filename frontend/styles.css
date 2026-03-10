@@ -1,0 +1,1 @@
+:root{--green:#10b981;--light:#f0fdf4}body{font-family:-apple-system,sans-serif;background:var(--light);color:#333}header{background:linear-gradient(135deg,#047857,var(--green));color:white;padding:2rem;border-radius:8px;text-align:center}button{background:var(--green);color:white;border:none;padding:0.8rem 1.5rem;border-radius:5px;cursor:pointer}

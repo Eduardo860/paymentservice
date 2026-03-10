@@ -1,0 +1,1 @@
+const testAPI=async()=>{try{document.getElementById("resp").textContent="Conectando...";const res=await fetch("http://localhost:8080/actuator/health");const data=await res.json();document.getElementById("resp").textContent=JSON.stringify(data,null,2)}catch(e){document.getElementById("resp").textContent="Error:"+e.message}}
