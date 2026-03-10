@@ -2,10 +2,19 @@
 
 Sistema completo de microservicios con Spring Boot, MongoDB y CloudWatch en Docker.
 
-## 🚀 Ejecución rápida
+## 🚀 Ejecución
+
+### Opción 1: Sequencial (3 pasos)
 
 ```bash
-docker-compose up -d
+# Terminal 1: LocalStack
+docker-compose -f docker/localstack/docker-compose.yml up -d
+
+# Terminal 2: MongoDB
+docker-compose -f docker/mongodb/docker-compose.yml up -d
+
+# Terminal 3: Microservicios
+docker-compose up --build
 ```
 
 Espera 2-3 minutos. Luego:
@@ -14,22 +23,29 @@ Espera 2-3 minutos. Luego:
 - **API Gateway**: http://localhost:8080
 - **LocalStack**: http://localhost:4566
 
+### Opción 2: Todo desde raíz (si LocalStack y MongoDB ya están corriendo)
+
+```bash
+docker-compose up --build
+```
+
 ## 📋 Estructura
 
 ```
-├── eureka-server/           (Service Discovery)
-├── apigateway/              (Point of entry, port 8080)
-├── productservice/          (CRUD productos, port 8081)
-├── orderservice/            (CRUD órdenes, port 8082)
-├── paymentservice/          (CRUD pagos, port 8083)
-├── docker-compose.yml       (Levanta TODO)
+├── eureka-server/                    (Service Discovery)
+├── apigateway/                       (Point of entry, port 8080)
+├── productservice/                   (CRUD productos, port 8081)
+├── orderservice/                     (CRUD órdenes, port 8082)
+├── paymentservice/                   (CRUD pagos, port 8083)
+├── docker-compose.yml                (Microservicios Spring Boot)
 ├── docker/
-│   ├── microservices/
 │   ├── mongodb/
+│   │   └── docker-compose.yml        (3 instancias MongoDB)
 │   └── localstack/
-├── ARQUITECTURA.md          (Diagrama y componentes)
-├── TESTING.md               (Cómo ejecutar y probar)
-└── VERIFICACION.md          (Checklist del examen)
+│       └── docker-compose.yml        (CloudWatch en AWS simulado)
+├── ARQUITECTURA.md                   (Diagrama y componentes)
+├── TESTING.md                        (Cómo ejecutar y probar)
+└── VERIFICACION.md                   (Checklist del examen)
 ```
 
 ## 🔧 Microservicios
