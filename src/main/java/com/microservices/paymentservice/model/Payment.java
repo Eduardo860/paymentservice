@@ -15,6 +15,7 @@ public class Payment {
     private LocalDateTime createdAt;
 
     public Payment() {
+        this.createdAt = LocalDateTime.now();
     }
 
     public Payment(String orderId, Double amount, String status, String paymentMethod) {

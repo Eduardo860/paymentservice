@@ -14,6 +14,6 @@ WORKDIR /app
 
 COPY --from=builder /app/target/paymentservice-1.0.0.jar app.jar
 
-EXPOSE 8080
+EXPOSE 8083
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
