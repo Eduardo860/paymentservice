@@ -1,4 +1,4 @@
-FROM maven:3.8.4-openjdk-17-slim as builder
+FROM maven:3.9.5-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17-slim
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 

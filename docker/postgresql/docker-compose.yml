@@ -1,0 +1,31 @@
+# Paso 3.6: docker-compose -f docker/postgresql/docker-compose.yml up -d
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: postgres_retry_service
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=failed_products_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d failed_products_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  microservices-network:
+    external: true
+    name: examenprimerparcial_microservices-network

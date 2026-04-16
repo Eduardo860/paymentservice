@@ -9,6 +9,7 @@ public class Order {
     @Id
     private String id;
     private Long userId;
+    private String productId;
     private Double totalAmount;
     private String status; // PENDING, CONFIRMED, CANCELLED
     private LocalDateTime createdAt;
@@ -17,8 +18,9 @@ public class Order {
         this.createdAt = LocalDateTime.now();
     }
 
-    public Order(Long userId, Double totalAmount, String status) {
+    public Order(Long userId, String productId, Double totalAmount, String status) {
         this.userId = userId;
+        this.productId = productId;
         this.totalAmount = totalAmount;
         this.status = status;
         this.createdAt = LocalDateTime.now();
@@ -38,6 +40,14 @@ public class Order {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getProductId() {
+        return productId;
+    }
+
+    public void setProductId(String productId) {
+        this.productId = productId;
     }
 
     public Double getTotalAmount() {

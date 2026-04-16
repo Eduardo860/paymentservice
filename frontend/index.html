@@ -51,6 +51,26 @@
       </div>
 
       <div class="card">
+        <h2>Actualizar Producto</h2>
+        <div class="form-grid">
+          <input id="p-update-id" type="text" placeholder="ID del producto" />
+          <input id="p-update-name" type="text" placeholder="Nuevo nombre" />
+          <input id="p-update-desc" type="text" placeholder="Nueva descripción" />
+          <input id="p-update-price" type="number" placeholder="Nuevo precio" step="0.01" />
+          <input id="p-update-stock" type="number" placeholder="Nuevo stock" />
+        </div>
+        <button onclick="actualizarProducto()">✏️ Actualizar</button>
+      </div>
+
+      <div class="card">
+        <h2>Eliminar Producto</h2>
+        <div class="inline-form">
+          <input id="p-delete-id" type="text" placeholder="ID del producto" />
+          <button class="btn-danger" onclick="eliminarProducto()">🗑️ Eliminar</button>
+        </div>
+      </div>
+
+      <div class="card">
         <h2>Todos los Productos</h2>
         <button onclick="listarProductos()">📋 Listar Todos</button>
       </div>
@@ -64,6 +84,7 @@
         <h2>Crear Orden</h2>
         <div class="form-grid">
           <input id="o-userid" type="number" placeholder="User ID" />
+          <input id="o-productid" type="text" placeholder="Product ID" />
           <input id="o-amount" type="number" placeholder="Total Amount" step="0.01" />
           <select id="o-status">
             <option value="PENDIENTE">PENDIENTE</option>
@@ -168,19 +189,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <h2>🐳 Logs del Contenedor Docker</h2>
-        <div class="inline-form">
-          <select id="container-select">
-            <option value="infra-productservice">Product Service</option>
-            <option value="infra-orderservice">Order Service</option>
-            <option value="infra-paymentservice">Payment Service</option>
-            <option value="infra-apigateway">API Gateway</option>
-            <option value="infra-eureka-server">Eureka Server</option>
-          </select>
-          <button onclick="cargarContainerLogs()">🔄 Cargar</button>
-        </div>
-      </div>
 
       <div id="resp-logs" class="response"></div>
     </section>

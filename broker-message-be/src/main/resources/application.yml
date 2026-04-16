@@ -1,0 +1,92 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: broker-message-be
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-db:5432/failed_products_db}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mysecretpassword}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      fail-fast: false
+    consumer:
+      group-id: broker-message-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: "false"
+        spring.json.value.default.type: com.microservices.brokermessage.dto.KafkaMessageDto
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    listener:
+      missing-topics-fatal: false
+
+  mail:
+    host: ${MAIL_HOST:mailhog}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://eureka-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: broker-message-be
+
+retry:
+  max-attempts: 5
+  initial-backoff-seconds: 10
+  backoff-multiplier: 2
+
+services:
+  payment-url: ${PAYMENT_SERVICE_URL:http://apigateway:8080/pagos-api}
+  order-url: ${ORDER_SERVICE_URL:http://apigateway:8080/ordenes-api}
+  product-url: ${PRODUCT_SERVICE_URL:http://apigateway:8080/productos-api}
+
+notification:
+  email:
+    default-to: ${NOTIFICATION_EMAIL:admin@microservices.com}
+    from: ${NOTIFICATION_FROM:no-reply@microservices.com}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    '[com.microservices.brokermessage]': INFO
+    '[org.springframework.kafka]': WARN
+    '[org.hibernate]': WARN

@@ -48,8 +48,15 @@ async function request(method, path, body) {
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(API + path, opts);
   const text = await res.text();
-  try { return { ok: res.ok, data: JSON.parse(text) }; }
-  catch { return { ok: res.ok, data: text }; }
+  try {
+    const json = JSON.parse(text);
+    // Desempaquetar wrapper { status, data } o { status, message }
+    if (json && typeof json === 'object' && 'status' in json && ('data' in json || 'message' in json)) {
+      const isOk = typeof json.status === 'number' ? json.status >= 200 && json.status < 300 : json.status === 'success';
+      return { ok: isOk, data: isOk ? json.data : (json.message ?? json.data) };
+    }
+    return { ok: res.ok, data: json };
+  } catch { return { ok: res.ok, data: text }; }
 }
 
 // ── Tabs ──────────────────────────────────────────────────────
@@ -124,16 +131,39 @@ async function buscarPorNombre() {
   }
 }
 
+async function actualizarProducto() {
+  const id = document.getElementById('p-update-id').value.trim();
+  const name = document.getElementById('p-update-name').value.trim();
+  const description = document.getElementById('p-update-desc').value.trim();
+  const price = parseFloat(document.getElementById('p-update-price').value);
+  const stock = parseInt(document.getElementById('p-update-stock').value);
+  if (!id || !name || !description || isNaN(price) || isNaN(stock)) {
+    return show('resp-productos', 'Completa todos los campos incluyendo el ID.', true);
+  }
+  show('resp-productos', 'Actualizando producto...');
+  const { ok, data } = await request('PUT', '/productos/' + id, { name, description, price, stock });
+  show('resp-productos', data, !ok);
+}
+
+async function eliminarProducto() {
+  const id = document.getElementById('p-delete-id').value.trim();
+  if (!id) return show('resp-productos', 'Ingresa un ID.', true);
+  show('resp-productos', 'Eliminando producto...');
+  const { ok, data } = await request('DELETE', '/productos/' + id);
+  show('resp-productos', data, !ok);
+}
+
 // ── Órdenes ───────────────────────────────────────────────────
 async function crearOrden() {
   const userId = parseInt(document.getElementById('o-userid').value);
+  const productId = document.getElementById('o-productid').value.trim();
   const totalAmount = parseFloat(document.getElementById('o-amount').value);
   const status = document.getElementById('o-status').value;
-  if (isNaN(userId) || isNaN(totalAmount)) {
-    return show('resp-ordenes', 'Completa todos los campos.', true);
+  if (isNaN(userId) || !productId || isNaN(totalAmount)) {
+    return show('resp-ordenes', 'Completa todos los campos incluyendo el Product ID.', true);
   }
   show('resp-ordenes', 'Creando orden...');
-  const { ok, data } = await request('POST', '/ordenes', { userId, totalAmount, status });
+  const { ok, data } = await request('POST', '/ordenes', { userId, productId, totalAmount, status });
   show('resp-ordenes', data, !ok);
 }
 
@@ -223,30 +253,6 @@ async function cargarCloudWatchLogs() {
   }
 }
 
-async function cargarContainerLogs() {
-  const name = document.getElementById('container-select').value;
-  const el = document.getElementById('resp-logs');
-  el.className = 'response success';
-  el.innerHTML = '<span>Cargando...</span>';
-  try {
-    const res = await fetch('/logs/container/' + name);
-    const lines = await res.json();
-    if (!Array.isArray(lines) || lines.length === 0) {
-      el.innerHTML = '<span class="empty">Sin logs disponibles.</span>';
-      return;
-    }
-    const html = lines.map(line => {
-      const cls = /ERROR/i.test(line) ? 'log-line error'
-                : /WARN/i.test(line)  ? 'log-line warn'
-                : 'log-line';
-      return `<div class="${cls}">${escHtml(line)}</div>`;
-    }).join('');
-    el.innerHTML = `<p class="hint">Últimas ${lines.length} líneas — ${escHtml(name)}</p>` + html;
-  } catch (err) {
-    el.className = 'response error';
-    el.innerHTML = `<span>Error al cargar logs: ${escHtml(String(err))}</span>`;
-  }
-}
 
 // ── Init ──────────────────────────────────────────────────────
 checkHealth();

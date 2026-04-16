@@ -142,6 +142,40 @@ services:
       timeout: 10s
       retries: 3
 
+  # ========================================
+  # BROKER MESSAGE BE - Retry System (8084)
+  # ========================================
+  broker-message-be:
+    build:
+      context: ./broker-message-be
+      dockerfile: Dockerfile
+    container_name: infra-broker-message-be
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_retry_service:5432/failed_products_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mysecretpassword
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MAIL_HOST=mailhog
+      - MAIL_PORT=1025
+      - EUREKA_URL=http://eureka-server:8761/eureka/
+      - PAYMENT_SERVICE_URL=http://apigateway:8080/pagos
+      - ORDER_SERVICE_URL=http://apigateway:8080/ordenes
+      - PRODUCT_SERVICE_URL=http://apigateway:8080/productos
+      - NOTIFICATION_EMAIL=ep321889@gmail.com
+      - NOTIFICATION_FROM=no-reply@microservices.com
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
 networks:
   microservices-network:
     driver: bridge
