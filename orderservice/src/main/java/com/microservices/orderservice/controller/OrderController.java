@@ -6,8 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,11 +18,14 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/orders-api")
 public class OrderController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
 
     private Map<String, Object> ok(Object data) {
         Map<String, Object> r = new LinkedHashMap<>();
@@ -36,12 +41,31 @@ public class OrderController {
         return r;
     }
 
+    private void publishToKafka(String entityId, String action, Object requestData) {
+        try {
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("entityId", entityId);
+            msg.put("action", action);
+            msg.put("requestData", requestData);
+            kafkaTemplate.send("order_retry_jobs", msg);
+            logger.info("Published to Kafka order_retry_jobs entityId={} action={}", entityId, action);
+        } catch (Exception e) {
+            logger.error("Failed to publish to Kafka: {}", e.getMessage());
+        }
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Order order) {
         logger.info("Creating new order for user: {}", order.getUserId());
-        Order savedOrder = orderRepository.save(order);
-        logger.info("Order created successfully with ID: {}", savedOrder.getId());
-        return ResponseEntity.ok(ok(savedOrder));
+        try {
+            Order savedOrder = orderRepository.save(order);
+            logger.info("Order created successfully with ID: {}", savedOrder.getId());
+            return ResponseEntity.ok(ok(savedOrder));
+        } catch (Exception e) {
+            logger.error("Failed to create order, publishing to Kafka: {}", e.getMessage());
+            publishToKafka("new", "CREATE", order);
+            return ResponseEntity.status(503).body(err(503, "Operación encolada para reintento: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
@@ -67,15 +91,23 @@ public class OrderController {
     @PutMapping("/{id}/status")
     public ResponseEntity<Map<String, Object>> updateOrderStatus(@PathVariable String id, @RequestParam String status) {
         logger.info("Updating order {} status to: {}", id, status);
-        Optional<Order> order = orderRepository.findById(id);
-        if (order.isPresent()) {
-            Order existingOrder = order.get();
-            existingOrder.setStatus(status);
-            Order updatedOrder = orderRepository.save(existingOrder);
-            logger.info("Order {} status updated successfully", id);
-            return ResponseEntity.ok(ok(updatedOrder));
+        try {
+            Optional<Order> order = orderRepository.findById(id);
+            if (order.isPresent()) {
+                Order existingOrder = order.get();
+                existingOrder.setStatus(status);
+                Order updatedOrder = orderRepository.save(existingOrder);
+                logger.info("Order {} status updated successfully", id);
+                return ResponseEntity.ok(ok(updatedOrder));
+            }
+            logger.warn("Order not found for status update: {}", id);
+            return ResponseEntity.status(404).body(err(404, "Orden no encontrada: " + id));
+        } catch (Exception e) {
+            logger.error("Failed to update order {}, publishing to Kafka: {}", id, e.getMessage());
+            Map<String, Object> data = new HashMap<>();
+            data.put("status", status);
+            publishToKafka(id, "UPDATE", data);
+            return ResponseEntity.status(503).body(err(503, "Operación encolada para reintento: " + e.getMessage()));
         }
-        logger.warn("Order not found for status update: {}", id);
-        return ResponseEntity.status(404).body(err(404, "Orden no encontrada: " + id));
     }
 }
