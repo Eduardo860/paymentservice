@@ -50,9 +50,26 @@ public class ProductRetryService {
     @Transactional
     public ProductRetryJob createFromKafkaMessage(KafkaMessageDto message) {
         try {
+            String productId = message.getEntityId() != null ? message.getEntityId() : "UNKNOWN";
+            String action = message.getAction() != null ? message.getAction() : "CREATE";
+            
+            // IDEMPOTENCIA: Verificar si ya existe un job pendiente para este producto y acción
+            List<ProductRetryJob> existingJobs = repository.findByProductIdAndActionAndStatusIn(
+                productId, 
+                action, 
+                List.of("SCHEDULED", "RUNNING")
+            );
+            
+            if (!existingJobs.isEmpty()) {
+                ProductRetryJob existing = existingJobs.get(0);
+                logger.warn("ProductRetryJob already exists for productId={} action={} - Skipping duplicate. Existing job id={}", 
+                    productId, action, existing.getId());
+                return existing;
+            }
+            
             ProductRetryJob job = new ProductRetryJob();
-            job.setProductId(message.getEntityId() != null ? message.getEntityId() : "UNKNOWN");
-            job.setAction(message.getAction() != null ? message.getAction() : "CREATE");
+            job.setProductId(productId);
+            job.setAction(action);
             job.setStatus("SCHEDULED");
             job.setAttempt(0);
             job.setNextRunAt(OffsetDateTime.now());
@@ -60,7 +77,7 @@ public class ProductRetryService {
                 job.setRequestData(objectMapper.writeValueAsString(message.getRequestData()));
             }
             ProductRetryJob saved = repository.save(job);
-            logger.info("ProductRetryJob created id={} action={}", saved.getId(), saved.getAction());
+            logger.info("ProductRetryJob created id={} productId={} action={}", saved.getId(), saved.getProductId(), saved.getAction());
             return saved;
         } catch (Exception e) {
             logger.error("Failed to create ProductRetryJob: {}", e.getMessage());

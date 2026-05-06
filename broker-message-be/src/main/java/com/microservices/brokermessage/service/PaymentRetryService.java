@@ -50,9 +50,26 @@ public class PaymentRetryService {
     @Transactional
     public PaymentRetryJob createFromKafkaMessage(KafkaMessageDto message) {
         try {
+            String paymentId = message.getEntityId() != null ? message.getEntityId() : "UNKNOWN";
+            String action = message.getAction() != null ? message.getAction() : "CREATE";
+            
+            // IDEMPOTENCIA: Verificar si ya existe un job pendiente para este pago y acción
+            List<PaymentRetryJob> existingJobs = repository.findByPaymentIdAndActionAndStatusIn(
+                paymentId, 
+                action, 
+                List.of("SCHEDULED", "RUNNING")
+            );
+            
+            if (!existingJobs.isEmpty()) {
+                PaymentRetryJob existing = existingJobs.get(0);
+                logger.warn("PaymentRetryJob already exists for paymentId={} action={} - Skipping duplicate. Existing job id={}", 
+                    paymentId, action, existing.getId());
+                return existing;
+            }
+            
             PaymentRetryJob job = new PaymentRetryJob();
-            job.setPaymentId(message.getEntityId() != null ? message.getEntityId() : "UNKNOWN");
-            job.setAction(message.getAction() != null ? message.getAction() : "CREATE");
+            job.setPaymentId(paymentId);
+            job.setAction(action);
             job.setStatus("SCHEDULED");
             job.setAttempt(0);
             job.setNextRunAt(OffsetDateTime.now());
@@ -60,7 +77,7 @@ public class PaymentRetryService {
                 job.setRequestData(objectMapper.writeValueAsString(message.getRequestData()));
             }
             PaymentRetryJob saved = repository.save(job);
-            logger.info("PaymentRetryJob created id={} action={}", saved.getId(), saved.getAction());
+            logger.info("PaymentRetryJob created id={} paymentId={} action={}", saved.getId(), saved.getPaymentId(), saved.getAction());
             return saved;
         } catch (Exception e) {
             logger.error("Failed to create PaymentRetryJob: {}", e.getMessage());

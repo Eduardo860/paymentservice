@@ -50,9 +50,26 @@ public class OrderRetryService {
     @Transactional
     public OrderRetryJob createFromKafkaMessage(KafkaMessageDto message) {
         try {
+            String orderId = message.getEntityId() != null ? message.getEntityId() : "UNKNOWN";
+            String action = message.getAction() != null ? message.getAction() : "CREATE";
+            
+            // IDEMPOTENCIA: Verificar si ya existe un job pendiente para esta orden y acción
+            List<OrderRetryJob> existingJobs = repository.findByOrderIdAndActionAndStatusIn(
+                orderId, 
+                action, 
+                List.of("SCHEDULED", "RUNNING")
+            );
+            
+            if (!existingJobs.isEmpty()) {
+                OrderRetryJob existing = existingJobs.get(0);
+                logger.warn("OrderRetryJob already exists for orderId={} action={} - Skipping duplicate. Existing job id={}", 
+                    orderId, action, existing.getId());
+                return existing;
+            }
+            
             OrderRetryJob job = new OrderRetryJob();
-            job.setOrderId(message.getEntityId() != null ? message.getEntityId() : "UNKNOWN");
-            job.setAction(message.getAction() != null ? message.getAction() : "CREATE");
+            job.setOrderId(orderId);
+            job.setAction(action);
             job.setStatus("SCHEDULED");
             job.setAttempt(0);
             job.setNextRunAt(OffsetDateTime.now());
@@ -60,7 +77,7 @@ public class OrderRetryService {
                 job.setRequestData(objectMapper.writeValueAsString(message.getRequestData()));
             }
             OrderRetryJob saved = repository.save(job);
-            logger.info("OrderRetryJob created id={} action={}", saved.getId(), saved.getAction());
+            logger.info("OrderRetryJob created id={} orderId={} action={}", saved.getId(), saved.getOrderId(), saved.getAction());
             return saved;
         } catch (Exception e) {
             logger.error("Failed to create OrderRetryJob: {}", e.getMessage());

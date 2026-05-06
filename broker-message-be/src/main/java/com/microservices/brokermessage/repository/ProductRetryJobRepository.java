@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface ProductRetryJobRepository extends JpaRepository<ProductRetryJob, UUID> {
 
     List<ProductRetryJob> findByStatusAndNextRunAtLessThanEqual(String status, OffsetDateTime dateTime);
+    
+    List<ProductRetryJob> findByProductIdAndActionAndStatusIn(String productId, String action, List<String> statuses);
 }
