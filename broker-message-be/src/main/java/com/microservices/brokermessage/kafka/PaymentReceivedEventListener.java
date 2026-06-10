@@ -33,7 +33,11 @@ public class PaymentReceivedEventListener {
     @Value("${PAYMENT_SERVICE_URL:http://apigateway:8080/pagos-api}")
     private String paymentServiceUrl;
     
-    @KafkaListener(topics = "payment_received_events", groupId = "payment-group")
+    @KafkaListener(
+        topics = "payment_received_events", 
+        groupId = "payment-group",
+        containerFactory = "eventKafkaListenerContainerFactory"
+    )
     public void consumePaymentReceivedEvent(Map<String, Object> event) {
         logger.info("Consumed payment_received_events: {}", event);
         

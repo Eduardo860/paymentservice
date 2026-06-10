@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,6 +28,12 @@ public class OrderController {
 
     @Autowired
     private KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${PRODUCT_SERVICE_URL:http://apigateway:8080/productos-api}")
+    private String productServiceUrl;
 
     private Map<String, Object> ok(Object data) {
         Map<String, Object> r = new LinkedHashMap<>();
@@ -58,6 +66,40 @@ public class OrderController {
     public ResponseEntity<Map<String, Object>> createOrder(@RequestBody Order order) {
         logger.info("Creating new order for user: {}", order.getUserId());
         try {
+            // Verificar stock
+            if (order.getProducts() != null && !order.getProducts().isEmpty()) {
+                for (Order.Product p : order.getProducts()) {
+                    if (p.getQuantity() == null || p.getQuantity() <= 0) {
+                        return ResponseEntity.badRequest().body(err(400, "La cantidad del producto debe ser mayor a cero"));
+                    }
+                    Map<String, Object> prodResponse = restTemplate.getForObject(
+                            productServiceUrl + "/" + p.getProductId(),
+                            Map.class
+                    );
+                    if (prodResponse == null || !prodResponse.containsKey("data")) {
+                        return ResponseEntity.status(404).body(err(404, "Producto no encontrado: " + p.getProductId()));
+                    }
+                    Map<String, Object> prodData = (Map<String, Object>) prodResponse.get("data");
+                    Integer stock = (Integer) prodData.get("stock");
+                    if (stock == null || stock < p.getQuantity()) {
+                        return ResponseEntity.status(400).body(err(400, "Stock insuficiente para el producto: " + p.getProductId() + ". Stock disponible: " + (stock == null ? 0 : stock)));
+                    }
+                }
+            } else if (order.getProductId() != null) {
+                Map<String, Object> prodResponse = restTemplate.getForObject(
+                        productServiceUrl + "/" + order.getProductId(),
+                        Map.class
+                );
+                if (prodResponse == null || !prodResponse.containsKey("data")) {
+                    return ResponseEntity.status(404).body(err(404, "Producto no encontrado: " + order.getProductId()));
+                }
+                Map<String, Object> prodData = (Map<String, Object>) prodResponse.get("data");
+                Integer stock = (Integer) prodData.get("stock");
+                if (stock == null || stock < 1) {
+                    return ResponseEntity.status(400).body(err(400, "Stock insuficiente para el producto: " + order.getProductId()));
+                }
+            }
+
             Order savedOrder = orderRepository.save(order);
             logger.info("Order created successfully with ID: {}", savedOrder.getId());
             
@@ -70,6 +112,36 @@ public class OrderController {
             publishToKafka("new", "CREATE", order);
             return ResponseEntity.status(503).body(err(503, "Operación encolada para reintento: " + e.getMessage()));
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getAllOrders() {
+        logger.info("Fetching all orders");
+        List<Order> orders = orderRepository.findAll();
+        return ResponseEntity.ok(ok(orders));
+    }
+
+    @GetMapping("/producto/{productId}")
+    public ResponseEntity<Map<String, Object>> isProductInOrder(@PathVariable String productId) {
+        logger.info("Checking if product {} is in any order", productId);
+        List<Order> orders = orderRepository.findAll();
+        boolean found = false;
+        for (Order o : orders) {
+            if (productId.equals(o.getProductId())) {
+                found = true;
+                break;
+            }
+            if (o.getProducts() != null) {
+                for (Order.Product p : o.getProducts()) {
+                    if (productId.equals(p.getProductId())) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found) break;
+        }
+        return ResponseEntity.ok(ok(found));
     }
 
     @GetMapping("/{id}")

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "microservices-segundo-parcial",
 		"name": "Microservicios - Segundo Parcial",
-		"description": "Colección completa para probar los 3 flujos del sistema de microservicios",
+		"description": "Colecci\u00f3n completa para probar los 3 flujos del sistema de microservicios",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -26,9 +26,13 @@
 						"url": {
 							"raw": "http://localhost:8080/productos",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos"]
+							"path": [
+								"productos"
+							]
 						},
 						"description": "Crea un producto con stock inicial"
 					},
@@ -42,9 +46,13 @@
 						"url": {
 							"raw": "http://localhost:8080/productos",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos"]
+							"path": [
+								"productos"
+							]
 						},
 						"description": "Obtiene todos los productos"
 					},
@@ -58,11 +66,16 @@
 						"url": {
 							"raw": "http://localhost:8080/productos/{{productId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos", "{{productId}}"]
+							"path": [
+								"productos",
+								"{{productId}}"
+							]
 						},
-						"description": "Obtiene un producto específico"
+						"description": "Obtiene un producto espec\u00edfico"
 					},
 					"response": []
 				},
@@ -83,9 +96,15 @@
 						"url": {
 							"raw": "http://localhost:8080/productos/{{productId}}/reducir-stock",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos", "{{productId}}", "reducir-stock"]
+							"path": [
+								"productos",
+								"{{productId}}",
+								"reducir-stock"
+							]
 						},
 						"description": "Reduce el stock de un producto (usado por el flujo de inventario)"
 					},
@@ -94,7 +113,7 @@
 			]
 		},
 		{
-			"name": "2. Órdenes",
+			"name": "2. \u00d3rdenes",
 			"item": [
 				{
 					"name": "Crear Orden (Flujo Inventario)",
@@ -128,9 +147,13 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes"]
+							"path": [
+								"ordenes"
+							]
 						},
 						"description": "Crea una orden y publica evento inventory_update_events"
 					},
@@ -144,27 +167,38 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes/{{orderId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes", "{{orderId}}"]
+							"path": [
+								"ordenes",
+								"{{orderId}}"
+							]
 						},
-						"description": "Obtiene una orden específica"
+						"description": "Obtiene una orden espec\u00edfica"
 					},
 					"response": []
 				},
 				{
-					"name": "Listar Órdenes por Usuario",
+					"name": "Listar \u00d3rdenes por Usuario",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
 							"raw": "http://localhost:8080/ordenes/usuario/12345",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes", "usuario", "12345"]
+							"path": [
+								"ordenes",
+								"usuario",
+								"12345"
+							]
 						},
-						"description": "Obtiene todas las órdenes de un usuario"
+						"description": "Obtiene todas las \u00f3rdenes de un usuario"
 					},
 					"response": []
 				},
@@ -185,9 +219,14 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes/{{orderId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes", "{{orderId}}"]
+							"path": [
+								"ordenes",
+								"{{orderId}}"
+							]
 						},
 						"description": "Actualiza una orden y publica evento si afecta inventario"
 					},
@@ -201,9 +240,15 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes/{{orderId}}/status?status=PAGADO",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes", "{{orderId}}", "status"],
+							"path": [
+								"ordenes",
+								"{{orderId}}",
+								"status"
+							],
 							"query": [
 								{
 									"key": "status",
@@ -253,9 +298,13 @@
 						"url": {
 							"raw": "http://localhost:8080/pagos",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["pagos"]
+							"path": [
+								"pagos"
+							]
 						},
 						"description": "Crea un pago y publica evento payment_received_events"
 					},
@@ -269,11 +318,16 @@
 						"url": {
 							"raw": "http://localhost:8080/pagos/{{paymentId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["pagos", "{{paymentId}}"]
+							"path": [
+								"pagos",
+								"{{paymentId}}"
+							]
 						},
-						"description": "Obtiene un pago específico"
+						"description": "Obtiene un pago espec\u00edfico"
 					},
 					"response": []
 				},
@@ -285,9 +339,15 @@
 						"url": {
 							"raw": "http://localhost:8080/pagos/orden/{{orderId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["pagos", "orden", "{{orderId}}"]
+							"path": [
+								"pagos",
+								"orden",
+								"{{orderId}}"
+							]
 						},
 						"description": "Obtiene todos los pagos de una orden"
 					},
@@ -310,9 +370,14 @@
 						"url": {
 							"raw": "http://localhost:8080/pagos/procesar",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["pagos", "procesar"]
+							"path": [
+								"pagos",
+								"procesar"
+							]
 						},
 						"description": "Procesa un pago (endpoint alternativo)"
 					},
@@ -321,7 +386,7 @@
 			]
 		},
 		{
-			"name": "4. Verificación",
+			"name": "4. Verificaci\u00f3n",
 			"item": [
 				{
 					"name": "Health Check - Eureka",
@@ -331,11 +396,16 @@
 						"url": {
 							"raw": "http://localhost:8761/eureka/apps",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8761",
-							"path": ["eureka", "apps"]
+							"path": [
+								"eureka",
+								"apps"
+							]
 						},
-						"description": "Verifica que todos los servicios estén registrados en Eureka"
+						"description": "Verifica que todos los servicios est\u00e9n registrados en Eureka"
 					},
 					"response": []
 				},
@@ -347,9 +417,14 @@
 						"url": {
 							"raw": "http://localhost:8080/actuator/health",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["actuator", "health"]
+							"path": [
+								"actuator",
+								"health"
+							]
 						},
 						"description": "Verifica el estado del API Gateway"
 					},
@@ -358,10 +433,10 @@
 			]
 		},
 		{
-			"name": "5. Flujo Completo - Prueba E2E",
+			"name": "Flujo 1: Actualizar Inventario",
 			"item": [
 				{
-					"name": "1. Crear Producto",
+					"name": "1.1 Crear Producto",
 					"event": [
 						{
 							"listen": "test",
@@ -370,7 +445,7 @@
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
 									"    pm.collectionVariables.set(\"productId\", jsonData.data.id);",
-									"    console.log(\"✅ Producto creado - ID: \" + jsonData.data.id);",
+									"    console.log(\"\u2705 Producto creado - ID: \" + jsonData.data.id);",
 									"    console.log(\"   Stock inicial: \" + jsonData.data.stock);",
 									"}"
 								],
@@ -393,15 +468,19 @@
 						"url": {
 							"raw": "http://localhost:8080/productos",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos"]
+							"path": [
+								"productos"
+							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "2. Crear Orden (inventory_update_events)",
+					"name": "1.2 Crear Orden (Prueba Inventario)",
 					"event": [
 						{
 							"listen": "test",
@@ -410,10 +489,10 @@
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
 									"    pm.collectionVariables.set(\"orderId\", jsonData.data.id);",
-									"    console.log(\"✅ Orden creada - ID: \" + jsonData.data.id);",
-									"    console.log(\"   → Evento publicado: inventory_update_events\");",
-									"    console.log(\"   → Verificar Kafka UI: http://localhost:8090\");",
-									"    console.log(\"   → Verificar stock reducido en MongoDB\");",
+									"    console.log(\"\u2705 Orden creada - ID: \" + jsonData.data.id);",
+									"    console.log(\"   \u2192 Evento publicado: inventory_update_events\");",
+									"    console.log(\"   \u2192 Verificar Kafka UI: http://localhost:8090\");",
+									"    console.log(\"   \u2192 Verificar stock reducido en MongoDB\");",
 									"}"
 								],
 								"type": "text/javascript"
@@ -435,15 +514,19 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes"]
+							"path": [
+								"ordenes"
+							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "3. Verificar Stock Reducido",
+					"name": "1.3 Verificar Stock Reducido",
 					"event": [
 						{
 							"listen": "test",
@@ -451,7 +534,7 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
-									"    console.log(\"✅ Stock actualizado: \" + jsonData.data.stock);",
+									"    console.log(\"\u2705 Stock actualizado: \" + jsonData.data.stock);",
 									"    console.log(\"   Esperado: 8 (10 - 2)\");",
 									"}"
 								],
@@ -465,15 +548,25 @@
 						"url": {
 							"raw": "http://localhost:8080/productos/{{productId}}",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["productos", "{{productId}}"]
+							"path": [
+								"productos",
+								"{{productId}}"
+							]
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Flujo 2: Pagos Recibidos",
+			"item": [
 				{
-					"name": "4. Crear Pago (payment_received_events)",
+					"name": "2.1 Procesar Pago",
 					"event": [
 						{
 							"listen": "test",
@@ -482,11 +575,11 @@
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
 									"    pm.collectionVariables.set(\"paymentId\", jsonData.data.id);",
-									"    console.log(\"✅ Pago creado - ID: \" + jsonData.data.id);",
-									"    console.log(\"   → Evento publicado: payment_received_events\");",
-									"    console.log(\"   → Verificar Kafka UI: http://localhost:8090\");",
-									"    console.log(\"   → Verificar MailHog: http://localhost:8025 (correo 'Pago recibido')\");",
-									"    console.log(\"   → Verificar tabla 'envios' en PostgreSQL\");",
+									"    console.log(\"\u2705 Pago creado - ID: \" + jsonData.data.id);",
+									"    console.log(\"   \u2192 Evento publicado: payment_received_events\");",
+									"    console.log(\"   \u2192 Verificar Kafka UI: http://localhost:8090\");",
+									"    console.log(\"   \u2192 Verificar MailHog: http://localhost:8025 (correo 'Pago recibido')\");",
+									"    console.log(\"   \u2192 Verificar tabla 'envios' en PostgreSQL\");",
 									"}"
 								],
 								"type": "text/javascript"
@@ -508,41 +601,55 @@
 						"url": {
 							"raw": "http://localhost:8080/pagos",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["pagos"]
+							"path": [
+								"pagos"
+							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "5. ESPERAR 10 SEGUNDOS (Scheduler)",
+					"name": "2.2 ESPERAR 10 SEGUNDOS (Scheduler)",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
 							"raw": "http://localhost:8080/actuator/health",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["actuator", "health"]
+							"path": [
+								"actuator",
+								"health"
+							]
 						},
-						"description": "⏰ ESPERA 10-15 SEGUNDOS antes de continuar\n\nEl scheduler procesará los envios y enviará el correo de confirmación.\n\nVerificar:\n- MailHog: Correo 'Confirmación de orden'\n- PostgreSQL: status='SENT' en tabla envios"
+						"description": "\u23f0 ESPERA 10-15 SEGUNDOS antes de continuar\n\nEl scheduler procesar\u00e1 los envios y enviar\u00e1 el correo de confirmaci\u00f3n.\n\nVerificar:\n- MailHog: Correo 'Confirmaci\u00f3n de orden'\n- PostgreSQL: status='SENT' en tabla envios"
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "Flujo 3: Actualizar Estatus de Orden",
+			"item": [
 				{
-					"name": "6. Cambiar Estado (order_status_changed_events)",
+					"name": "3.1 Cambiar Estado a PAGADO",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"if (pm.response.code === 200) {",
-									"    console.log(\"✅ Estado actualizado a PAGADO\");",
-									"    console.log(\"   → Evento publicado: order_status_changed_events\");",
-									"    console.log(\"   → Verificar Kafka UI: http://localhost:8090\");",
-									"    console.log(\"   → Verificar MailHog: http://localhost:8025 (correo 'Cambio de estado')\");",
+									"    console.log(\"\u2705 Estado actualizado a PAGADO\");",
+									"    console.log(\"   \u2192 Evento publicado: order_status_changed_events\");",
+									"    console.log(\"   \u2192 Verificar Kafka UI: http://localhost:8090\");",
+									"    console.log(\"   \u2192 Verificar MailHog: http://localhost:8025 (correo 'Cambio de estado')\");",
 									"}"
 								],
 								"type": "text/javascript"
@@ -555,9 +662,15 @@
 						"url": {
 							"raw": "http://localhost:8080/ordenes/{{orderId}}/status?status=PAGADO",
 							"protocol": "http",
-							"host": ["localhost"],
+							"host": [
+								"localhost"
+							],
 							"port": "8080",
-							"path": ["ordenes", "{{orderId}}", "status"],
+							"path": [
+								"ordenes",
+								"{{orderId}}",
+								"status"
+							],
 							"query": [
 								{
 									"key": "status",
@@ -568,8 +681,7 @@
 					},
 					"response": []
 				}
-			],
-			"description": "Flujo End-to-End completo que prueba los 3 flujos del sistema:\n1. Flujo de Inventario\n2. Flujo de Pagos\n3. Flujo de Estado"
+			]
 		}
 	],
 	"variable": [

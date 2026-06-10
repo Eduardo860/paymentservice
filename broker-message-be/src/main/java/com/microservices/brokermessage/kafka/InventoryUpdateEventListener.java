@@ -23,7 +23,11 @@ public class InventoryUpdateEventListener {
     @Value("${PRODUCT_SERVICE_URL:http://apigateway:8080/productos-api}")
     private String productServiceUrl;
     
-    @KafkaListener(topics = "inventory_update_events", groupId = "inventory-group")
+    @KafkaListener(
+        topics = "inventory_update_events", 
+        groupId = "inventory-group",
+        containerFactory = "eventKafkaListenerContainerFactory"
+    )
     public void consumeInventoryUpdateEvent(Map<String, Object> event) {
         logger.info("Consumed inventory_update_events: {}", event);
         

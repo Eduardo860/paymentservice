@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -26,6 +28,12 @@ public class ProductController {
 
     @Autowired
     private KafkaTemplate<String, Map<String, Object>> kafkaTemplate;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Value("${ORDER_SERVICE_URL:http://apigateway:8080/orders-api}")
+    private String orderServiceUrl;
 
     private Map<String, Object> ok(Object data) {
         Map<String, Object> r = new LinkedHashMap<>();
@@ -82,8 +90,14 @@ public class ProductController {
             logger.info("Product created successfully with ID: {}", savedProduct.getId());
             return ResponseEntity.ok(ok(savedProduct));
         } catch (Exception e) {
-            logger.error("Failed to create product, publishing to Kafka: {}", e.getMessage());
-            publishToKafka("new", "CREATE", product);
+            logger.error("Failed to create product: {}", e.getMessage(), e);
+            logger.info("Publishing to Kafka topic 'product_retry_jobs'...");
+            try {
+                publishToKafka("new", "CREATE", product);
+                logger.info("Successfully published to Kafka");
+            } catch (Exception kafkaEx) {
+                logger.error("CRITICAL: Failed to publish to Kafka: {}", kafkaEx.getMessage(), kafkaEx);
+            }
             return ResponseEntity.status(503).body(err(503, "Operación encolada para reintento: " + e.getMessage()));
         }
     }
@@ -112,6 +126,20 @@ public class ProductController {
         logger.info("Deleting product with ID: {}", id);
         try {
             if (productRepository.existsById(id)) {
+                try {
+                    Map<String, Object> response = restTemplate.getForObject(
+                            orderServiceUrl + "/producto/" + id,
+                            Map.class
+                    );
+                    if (response != null && response.containsKey("data") && Boolean.TRUE.equals(response.get("data"))) {
+                        logger.warn("Cannot delete product {}, it is associated with an order", id);
+                        return ResponseEntity.status(400).body(err(400, "El producto está asociado a una orden y no puede ser eliminado"));
+                    }
+                } catch (Exception e) {
+                    logger.error("Error checking if product is in order: {}", e.getMessage());
+                    return ResponseEntity.status(500).body(err(500, "Error verificando si el producto está en una orden: " + e.getMessage()));
+                }
+
                 productRepository.deleteById(id);
                 logger.info("Product deleted successfully: {}", id);
                 return ResponseEntity.ok(ok("Producto eliminado correctamente"));

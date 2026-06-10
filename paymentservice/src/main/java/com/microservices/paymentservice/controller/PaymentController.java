@@ -47,8 +47,8 @@ public class PaymentController {
             msg.put("entityId", entityId);
             msg.put("action", action);
             msg.put("requestData", requestData);
-            kafkaTemplate.send("payment_retry_jobs", msg);
-            logger.info("Published to Kafka payment_retry_jobs entityId={} action={}", entityId, action);
+            kafkaTemplate.send("payments_retry_jobs", msg);
+            logger.info("Published to Kafka payments_retry_jobs entityId={} action={}", entityId, action);
         } catch (Exception e) {
             logger.error("Failed to publish to Kafka: {}", e.getMessage());
         }
