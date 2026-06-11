@@ -3,3 +3,6 @@
 Documentacion/
 INSTRUCCIONES_PRUEBA.md
 
+# Secrets — never commit real credentials
+.env
+

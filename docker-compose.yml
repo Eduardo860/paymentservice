@@ -198,7 +198,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - CLOUDWATCH_ENDPOINT=http://localstack:4566
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://modelo_prueba_test_admin:1vn8n1sk3oZ71Bvz@cluster.xogfhlf.mongodb.net/productos_db?retryWrites=true&w=majority
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI_PRODUCTOS}
       - SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED=false
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - ORDER_SERVICE_URL=http://apigateway:8080/ordenes
@@ -230,7 +230,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - CLOUDWATCH_ENDPOINT=http://localstack:4566
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://modelo_prueba_test_admin:1vn8n1sk3oZ71Bvz@cluster.xogfhlf.mongodb.net/ordenes_db?retryWrites=true&w=majority
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI_ORDENES}
       - SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED=false
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - PRODUCT_SERVICE_URL=http://apigateway:8080/productos
@@ -263,7 +263,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - CLOUDWATCH_ENDPOINT=http://localstack:4566
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://modelo_prueba_test_admin:1vn8n1sk3oZ71Bvz@cluster.xogfhlf.mongodb.net/pagos_db?retryWrites=true&w=majority
+      - SPRING_DATA_MONGODB_URI=${MONGO_URI_PAGOS}
       - SPRING_CLOUD_COMPATIBILITY_VERIFIER_ENABLED=false
       - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
       - ORDER_SERVICE_URL=http://apigateway:8080/ordenes
